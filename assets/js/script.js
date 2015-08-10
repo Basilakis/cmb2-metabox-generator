@@ -151,6 +151,28 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    // make a guess at probable ID based on the Title field
+    function generateAnID (field) {
+        var $this = $(field.target),
+            title = $this.val(),
+            clean_ID = makeSafeString(title),
+            // General or fields?
+            $id_field = $this.is('#mb-title')
+                ? $('#mb-id')
+                : $this.parents('.form-element').find('.mb-field-id');
+
+        // leave the ID alone if something is already there
+        if ( $id_field.val() === "" ) {
+            $id_field.val( clean_ID );
+        }
+    }
+
+    // generate an id from the General Properities' Title
+    $('#mb-title').on('change', generateAnID);
+
+    // generate an id from Metabox Field Title
+    fields.on('change', '.mb-field-title', generateAnID);
+
     // when we select a field type
     fields.on('change', '.mb-field-type', function () {
         in_progress = true;
@@ -492,6 +514,12 @@ jQuery(document).ready(function ($) {
     // helper function to create 'foo', 'bar' from the foo, bar
     function quoted_array_values(val) {
         return "'" + val.split(",").join("', '").replace(/' /g, "'") + "'";
+    }
+
+
+    // helper function to create php_happy_strings for IDs and the like
+    function makeSafeString(s){
+        return s.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     }
 
     /* Create the template variable to use in underscor.js templating.
