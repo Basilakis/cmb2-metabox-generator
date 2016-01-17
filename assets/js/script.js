@@ -151,6 +151,61 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    $('#show-bulk').on('click', function(evt){
+        $('#bulk-wrap').slideToggle();
+
+        return false;
+    });
+    $('#parse-bulk-input').on('click', parseBulkInput);
+
+    function parseBulkInput (evt) {
+        var $textarea = $('#bulk-input'),
+            line,
+            parsed,
+            mb_title,
+            mb_id,
+            mb_type,
+            $form_elem,
+            lines = $textarea.val().split('\n');
+
+        for(var i = 0;i < lines.length;i++){
+
+            line = lines[i].trim();
+
+            // skip blank lines
+            if ( line.length ){
+
+                parsed = line.split(';')
+
+                // Plain title
+                mb_title = parsed[0].trim();
+                // id_ready_title
+                mb_id = makeSafeString(mb_title);
+
+                // default to 'text' field type
+                mb_type = parsed[1] !== undefined ? parsed[1].trim() : 'text';
+
+                // clone the form elements...
+                $form_elem = tmplt_form_elem.clone().appendTo(fields);
+
+                // ... and stuff in the data
+                $form_elem.find('.mb-field-title').val(mb_title);
+                $form_elem.find('.mb-field-id').val(mb_id);
+                $form_elem.find('.mb-field-type').val(mb_type)
+                    // get the parameter options to appear
+                    .trigger('change');
+
+            }
+        }
+
+        // we may have an empty initial field row if none were done by hand. Clean it up.
+        if ( $(fields).find('.form-element').eq(0).find('.mb-field-type').val() === null ) {
+            $(fields).find('.form-element').eq(0).remove();
+        }
+
+        enable_disable_form_elem_btns();
+    }
+
     // make a guess at probable ID based on the Title field
     function generateAnID (field) {
         var $this = $(field.target),
@@ -522,7 +577,7 @@ jQuery(document).ready(function ($) {
         return s.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     }
 
-    /* Create the template variable to use in underscor.js templating.
+    /* Create the template variable to use in underscore.js templating.
      * cmb2_obj keep unchanged which can be used in import/export cmb2 generator settings */
     function get_template_var() {
         var _tmplt_var = $.extend({}, cmb2_obj);
@@ -646,7 +701,7 @@ jQuery(document).ready(function ($) {
         var php_code_tmplt = _.template(base_tmplt),
             code = php_code_tmplt(_tmplt_var);
 
-        $('code').html(code);
+        $('#code-output>code').html(code);
         Prism.highlightAll();
         $("#codecontainer").removeClass('hidden');
     }
