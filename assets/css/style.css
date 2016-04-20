@@ -34,12 +34,20 @@ body {
     font-family: 'Source Code Pro';
     font-size: 14px;
 }
+#show-bulk {
+    margin-top: -4px;
+}
 #bulk-wrap {
     display: none;
 }
 #parse-bulk-input {
     margin-bottom: 15px;
 }
+/* TODO TEMP for dev */
+/*#parse-bulk-input, #code-generator {
+    position: fixed;
+    bottom: 20px;
+}*/
 form {
     margin-top: 20px;
 }
