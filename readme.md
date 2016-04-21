@@ -1,8 +1,8 @@
 # CMB2 Metabox Code Generator
 
-Use this code generator to generate fully functional CMB2 metaboxes by visually adding fields in the designer, and save your time and energy.
+Use this code generator to generate fully functional CMB2 metaboxes by visually adding fields in the designer or via bulk entry, and save your time and energy.
 
-Demo: [CMB2 Metabox Code Generator](http://hasinhayder.github.io/cmb2-metabox-generator/)
+Demo: [CMB2 Metabox Code Generator](http://willthemoor.github.io/cmb2-metabox-generator/)
 
 ## New in this fork:
 1. **Generated IDs:** IDs are auto-generated for each field  by making a 'clean' version of the `name` of the field. So 'My Great Field' becomes `'id' => 'my-great-field'`. Might not be perfect but generally saves a lot of typing.
@@ -28,5 +28,3 @@ Projects; group
 ```
 
 Pull requests are very welcome. But please remember to send it to **development** branch.
-
-Visit My Blog: [The StoryTeller](http://hasin.me)
