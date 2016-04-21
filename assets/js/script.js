@@ -763,6 +763,7 @@ jQuery(document).ready(function ($) {
     }
 
 
+
     // php code template
     function generate_template_output() {
         var _tmplt_var = get_template_var();
@@ -843,7 +844,7 @@ jQuery(document).ready(function ($) {
         var php_code_tmplt = _.template(base_tmplt),
             code = php_code_tmplt(_tmplt_var);
 
-        $('#code-output>code').html(code);
+        $('#template-output>code').html(code);
         Prism.highlightAll();
         $("#codecontainer").removeClass('hidden');
     }
