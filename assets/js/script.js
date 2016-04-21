@@ -174,6 +174,8 @@ jQuery(document).ready(function ($) {
             $form_elem,
             lines = $textarea.val().split('\n');
 
+        $('#bulk-wrap').addClass('processing');
+
         for(var i = 0;i < lines.length;i++){
 
             line = lines[i].trim();
@@ -217,6 +219,11 @@ jQuery(document).ready(function ($) {
         }
 
         enable_disable_form_elem_btns();
+
+        // Clean up
+        $('#bulk-wrap').slideToggle(function(){
+            $(this).removeClass('processing');
+        });
 
     }
 
