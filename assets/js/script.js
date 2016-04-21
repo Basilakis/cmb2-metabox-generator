@@ -28,7 +28,8 @@ jQuery(document).ready(function ($) {
     // work in progress, so show an alert when closing the window
     $(window).on('beforeunload', function () {
         if (in_progress) {
-            return "You have a work in progress!";
+            // shh for now
+            // return "You have a work in progress!";
         }
     });
 
@@ -89,6 +90,11 @@ jQuery(document).ready(function ($) {
                 params = $.grep(params, function (param) {
                     return param !== 'escape_cb';
                 });
+            }
+            // TODO: temp, debugging
+            if (cmb2_field_types.fields[field_type] === undefined){
+                // console.log('field_type:', field_type); //, "params:", params
+                // console.log("cmb2_field_types.fields[field_type]", cmb2_field_types.fields[field_type]);
             }
 
             // merge the common params with field type's own special params
@@ -151,13 +157,83 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    $('#show-bulk').on('click', function(evt){
+        $('#bulk-wrap').slideToggle();
+
+        return false;
+    });
+    $('#parse-bulk-input').on('click', parseBulkInput);
+
+    function parseBulkInput (evt) {
+        var $textarea = $('#bulk-input'),
+            line,
+            parsed,
+            mb_title,
+            mb_id,
+            mb_type,
+            $form_elem,
+            lines = $textarea.val().split('\n');
+
+        $('#bulk-wrap').addClass('processing');
+
+        for(var i = 0;i < lines.length;i++){
+
+            line = lines[i].trim();
+
+            // skip blank lines and //notes
+            if ( line.length && line.indexOf('//') == -1 ){
+
+                parsed = line.split(';')
+                // console.log(line);
+
+                // Plain title
+                mb_title = parsed[0].trim();
+
+                // id_ready_title
+                mb_id = makeSafeString(mb_title);
+
+                // default to 'text' field type
+                mb_type = parsed[1] !== undefined ? parsed[1].trim() : 'text';
+
+                // keep the -- on the id but not the title. used later to determine group fields.
+                if (parsed[0].indexOf('--') == 0){
+                    mb_title = parsed[0].substr(2).trim();
+                }
+
+                // clone the form elements...
+                $form_elem = tmplt_form_elem.clone().appendTo(fields);
+
+                // ... and stuff in the data
+                $form_elem.find('.mb-field-title').val(mb_title);
+                $form_elem.find('.mb-field-id').val(mb_id);
+                $form_elem.find('.mb-field-type').val(mb_type)
+                    // get the parameter options to appear
+                    .trigger('change');
+
+            }
+        }
+
+        // we may have an empty initial field row if none were done by hand. Clean it up.
+        if ( $(fields).find('.form-element').eq(0).find('.mb-field-type').val() === null ) {
+            $(fields).find('.form-element').eq(0).remove();
+        }
+
+        enable_disable_form_elem_btns();
+
+        // Clean up
+        $('#bulk-wrap').slideToggle(function(){
+            $(this).removeClass('processing');
+        });
+
+    }
+
     // make a guess at probable ID based on the Title field
     function generateAnID (field) {
         var $this = $(field.target),
-            title = $(this).val(),
+            title = $this.val(),
             clean_ID = makeSafeString(title),
             // General or fields?
-            $id_field = $(this).is('#mb-title')
+            $id_field = $this.is('#mb-title')
                 ? $('#mb-id')
                 : $this.parents('.form-element').find('.mb-field-id');
 
@@ -180,6 +256,11 @@ jQuery(document).ready(function ($) {
         var select = $(this),
             field_type = select.val(),
             form_elem = select.parents('.form-element');
+            // TODO: backtrace so that the entered field type can be output here
+            if (field_type == null){
+                console.warn('That field type is unknown. Setting it to "text".');
+                field_type = "text";
+            }
 
         // remove any existing row-param section first
         form_elem.children('.row-param').remove();
@@ -522,7 +603,7 @@ jQuery(document).ready(function ($) {
         return s.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     }
 
-    /* Create the template variable to use in underscor.js templating.
+    /* Create the template variable to use in underscore.js templating.
      * cmb2_obj keep unchanged which can be used in import/export cmb2 generator settings */
     function get_template_var() {
         var _tmplt_var = $.extend({}, cmb2_obj);
@@ -568,6 +649,123 @@ jQuery(document).ready(function ($) {
 
     // php code template
     function generate_code() {
+        var _tmplt_var = get_template_var();
+
+        _.templateSettings.variable = 'cmb';
+
+        var base_tmplt =  "add_action( 'cmb2_init', '<%= cmb.function %>' );\n"
+                        + "function <%= cmb.function %>() {\n\n"
+
+                            + "<% if (cmb.prefix) { %>"
+                            + "\t$prefix = '<%= cmb.prefix %>';\n\n"
+                            + "<% } %>"
+
+                            // TODO: Outer loop so that multiple metaboxes can be created?
+                            // or just sneak in a new field type below?
+                            + "\t$cmb = new_cmb2_box( array(\n"
+
+                                + "<% if (cmb.prefix) { %>"
+                                + "\t\t'id'           => $prefix . '<%= cmb.id %>',\n"
+                                + "<% } else { %>"
+                                + "\t\t'id'           => '<%= cmb.id %>',\n"
+                                + "<% } %>"
+
+                                + "<% if (cmb.textdomain) { %>"
+                                    + "\t\t'title'        => __( <%= cmb.title %> ),\n"
+                                + "<% } else { %>"
+                                    + "\t\t'title'        => '<%= cmb.title %>',\n"
+                                + "<% } %>"
+
+                                + "\t\t'object_types' => array( <%= cmb.object_types %> ),\n"
+                                + "\t\t'context'      => '<%= cmb.context %>',\n"
+                                + "\t\t'priority'     => '<%= cmb.priority %>',\n"
+
+                            + "\t) );\n\n"
+
+                            + "<% jQuery.each(cmb.fields, function (n) { %>"
+
+                                // Group field?
+                                // TODO? Check for number? $99_rest_of_var isn't allowed in php
+                                + "<% if ('group' === cmb.fields[n].type) { %>"
+                                    // store the ID for later
+                                    + "<% window.tempGroupID = cmb.fields[n].id %>"
+                                    + "\t$<%= cmb.fields[n].id %> = $cmb->add_field( array(\n"
+
+                                // Group sub field?
+                                + "<% } else if (cmb.fields[n].id.indexOf('__')== 0 ) { %>"
+
+                                    + "\t\t$cmb->add_group_field( $<%= window.tempGroupID %>, array(\n"
+                                    + "<% indent = '\t\t\t'; %>"
+
+                                // Single fields
+                                + "<% } else { %>"
+
+                                    + "\t$cmb->add_field( array(\n"
+                                    + "<% indent = '\t\t'; %>"
+
+                                + "<% } %>"
+
+
+                                + "<% jQuery.each(this, function (param, value) { %>"
+                                    + "<% if ('id' === param && cmb.prefix) { %>"
+                                    // + "<% console.log(param, value); %>"
+                                    + "<% var theID = value.indexOf('__') == 0 ? value.substr(2) : value; /* console.log(theID, value)*/ %>"
+
+                                    + "<%= indent %>'id' => $prefix . '<%= theID %>',\n"
+                                        // + "<%= indent %>'id' => $prefix . '<%= value %>',\n"
+
+                                    + "<% } else if (cmb.textdomain && cmb.cmb2_field_types.translatable.indexOf(param) >= 0) { %>"
+                                        + "<%= indent %>'<%= param %>' => __( <%= value %> ),\n"
+
+                                     + "<% } else if (cmb.cmb2_field_types.param_types.array_comma_separated.indexOf(param) >= 0) { %>"
+                                        + "<%= indent %>'<%= param %>' => array( <%= value %> ),\n"
+
+                                    + "<% } else if ('boolean' === typeof(value)) { %>"
+                                        + "<%= indent %>'<%= param %>' => <%= value %>,\n"
+
+                                    + "<% } else if (Array.isArray(value)) { %>"
+                                        + "<%= indent %>'<%= param %>' => array(\n"
+
+                                        + "<% for(var i = 0; i < value.length; i++) { %>"
+
+                                            + "<% if (cmb.textdomain && cmb.cmb2_field_types.param_options_sortable.indexOf(cmb.fields[n].type) >= 0) { %>"
+                                            + "<%= indent %>\t'<%= value[i][0] %>' => __( '<%= value[i][1] %>', '<%= cmb.textdomain %>' ),\n"
+                                            + "<% } else if ('boolean' === typeof(value[i][1])) { %>"
+                                            + "<%= indent %>\t'<%= value[i][0] %>' => <%= value[i][1] %>,\n"
+                                            + "<% } else { %>"
+                                            + "<%= indent %>\t'<%= value[i][0] %>' => '<%= value[i][1] %>',\n"
+                                            + "<% } %>"
+
+                                        + "<% } %>"
+
+                                        + "<%= indent %>),\n"
+
+                                    + "<% } else { %>"
+                                        + "<%= indent %>'<%= param %>' => '<%= value %>',\n"
+
+                                    + "<% } %>"
+                                + "<% }); %>"
+                                + "<% if (cmb.fields[n].id.indexOf('__')== 0 ) { %>"
+                                    + "\t\t) );\n\n"
+                                + "<% } else { %>"
+                                    + "\t) );\n\n"
+                                + "<% } %>"
+                            + "<% }); %>"
+
+                        + "}";
+
+        var php_code_tmplt = _.template(base_tmplt),
+            code = php_code_tmplt(_tmplt_var);
+
+        $('#code-output>code').html(code);
+        Prism.highlightAll();
+        $("#codecontainer").removeClass('hidden');
+    }
+
+
+
+    // php code template
+    function generate_template_output() {
         var _tmplt_var = get_template_var();
 
         _.templateSettings.variable = 'cmb';
@@ -646,7 +844,7 @@ jQuery(document).ready(function ($) {
         var php_code_tmplt = _.template(base_tmplt),
             code = php_code_tmplt(_tmplt_var);
 
-        $('code').html(code);
+        $('#template-output>code').html(code);
         Prism.highlightAll();
         $("#codecontainer").removeClass('hidden');
     }

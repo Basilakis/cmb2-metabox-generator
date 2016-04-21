@@ -18,9 +18,8 @@
 <div class="container hero">
     <div class="row">
         <div class="col-md-12">
-            <h1 class="maintitle">CMB2 Metabox Code Generator</h1>
-
-            <p>Use this generator to create fully functional CMB2 metaboxes easily. Save your time from boring works.</p>
+            <h1 class="maintitle"><i class="fa  fa-tasks"></i>  CMB2 Metabox Code Generator</h1>
+            <p><strong>Skip the boring bits.</strong> Use this generator to create fully functional CMB2 metaboxes easily. Now with bulk entry!</p>
         </div>
     </div>
 </div>
@@ -29,9 +28,8 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h2>General Properties</h2>
-
-                <p>Metabox properties. Use this section to define the scope of metabox, set it's id and other things.</p>
+                <h2>Metabox Properties</h2>
+                <p>Use this section to define the scope of metabox, set its id and other things.</p>
             </div>
         </div>
         <div class="row">
@@ -46,10 +44,10 @@
                         <input type="text" class="form-control" id="mb-id" placeholder="Metabox ID" value="">
                     </div>
                     <div class="form-group">
-                        <label>Comma Separated Scope</label>
+                        <label>Where should this metabox be shown?</label>
                         <input value="page, post" type="text" class="form-control" id="mb-object-types" placeholder="Scope">
 
-                        <p class="help-block">Where this metabox will be shown? like 'page','post' etc</p>
+                        <p class="help-block">Enter a specific post type like <code>page</code> or a comma separated list like <code>page, post</code> </p>
                     </div>
                     <div class="form-group">
                         <label>Text Domain</label>
@@ -61,7 +59,7 @@
                         <label>Metabox Context</label>
                         <select id="mb-context" class="form-control">
                             <option value="normal">Normal</option>
-                            <option value="advance">Advance</option>
+                            <option value="advanced">Advanced</option>
                             <option value="side">Side</option>
                         </select>
                     </div>
@@ -71,7 +69,7 @@
                             <option value="default">Default</option>
                             <option value="high">High</option>
                             <option value="core">Core</option>
-                            <option value="low">Low</option>low
+                            <option value="low">Low</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -95,9 +93,43 @@
         <div class="row">
             <div class="col-md-12">
                 <h2>Metabox Fields</h2>
-                <p>Generate Metabox fields from this section</p>
+                <p>Generate Metabox fields from this section or get a head start with
+                    <a id="show-bulk" class="btn btn-success btn-xs" href="#bulk">bulk entry <i class="fa fa-arrow-circle-down"></i></a>.</p>
             </div>
         </div>
+
+        <div class="row section-dark" id="bulk-wrap">
+            <div class="col-md-12">
+                <h3>Bulk Entry</h3>
+                <p class="help-block">Enter in the name of each field and a
+                    <a href="https://github.com/WebDevStudios/CMB2/wiki/Field-Types">CMB2 field type</a>
+                    seperated by a semi-colon. One field per line.</p>
+            </div>
+            <div class="col-md-7">
+
+                <form class="form" action="" id="bulk-input-form">
+                    <fieldset class="form-group">
+                        <textarea id="bulk-input" class="form-control" rows="10"></textarea>
+                    </fieldset>
+
+                </form>
+                <button id="parse-bulk-input" class="btn btn-primary">Generate Fields</button>
+            </div>
+            <div class="col-md-5">
+                <h4>Bulk Entry Example</h4>
+                <div id="bulk-example">
+<pre><code>My Little Box; text
+A Big Old Box; textarea
+Do You Love the Radio?; radio
+This has no type; //Defaults to 'text'
+My Group Field; group
+--My Group Sub-field; textarea_small
+--My Second Sub-field; file
+                    </code></pre>
+                </div>
+            </div>
+        </div>
+
 
         <form action="" id="fields">
         </form>
@@ -122,7 +154,7 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div id="code">
+                <div id="code-output">
                     <button type="button" class="btn btn-success btn-sm" id="copy-code">Copy to clipboard</button>
                     <code class="language-php"></code>
                 </div>
@@ -178,6 +210,7 @@
                     <option value="file">Image/File Uploader</option>
                     <option value="file_list">Image/File list upload</option>
                     <option value="oembed">Converts oembed urls</option>
+                    <option value="group">Group</option>
                 </select>
             </div>
             <div class="col-md-2">
