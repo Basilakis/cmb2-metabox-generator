@@ -15,8 +15,7 @@ Area Copy; textarea
 Area Logo; file
 ```
 <br>
-After entering bulk text, click the '[Generate Fields]' button. This will fill in the lower part of the UI so that you can tweak/add options to specific fields.
-
+After entering bulk text, click the '[Generate Fields]' button. This will fill in the lower part of the UI so that you can tweak/add options to specific fields.  <br><br>
 3. **Basic support for 'group' fields.**
 
 Combining 2 and 3, you can generate groups via bulk entry by setting a field to 'group' and prepending two dashes to its subfields. This isn't terribly robust—the sub fields need to appear immediately after the group field definition.
